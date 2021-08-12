@@ -1,7 +1,9 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../../models/user');
-const dateToString = require('../../helpers/date').dateToString;
+const { dateToString } = require('../../helpers/date');
+const { transformUser } = require('./merge');
+
 module.exports = {
 
   // 1. GraphQL API for User creation - registration
@@ -19,12 +21,13 @@ module.exports = {
         firstName: args.userInput.firstName,
         lastName: args.userInput.lastName,
         active: args.userInput.active,
-        createdDate: dateToString(args.userInput.createdDate)
+        createdDate: dateToString(args.userInput.createdDate),
+        role: args.userInput.role
       });
 
       const result = await user.save();
 
-      return { ...result._doc, password: null, _id: result.id };
+      return { ...result._doc, password: null, _id: result.id, createdDate: dateToString(user._doc.createdDate) };
     } catch (err) {
       throw err;
     }
@@ -58,7 +61,7 @@ module.exports = {
       throw new Error('User does not exist!');
     }
     else {
-      return { ...user._doc };
+      return { ...user._doc, createdDate: dateToString(user._doc.createdDate) };
     }
   },
   // 4. GraphQL API to change user password - changePassword
@@ -127,7 +130,6 @@ module.exports = {
       throw new Error('User does not exist!');
     }
     else {
-
       let updateProfile = await User.findByIdAndUpdate({ _id: req.userId }, { active: false });
       if (updateProfile) {
         return { message: "Profile deactivated!" }
@@ -135,6 +137,36 @@ module.exports = {
       else {
         return { message: "Failed to deactivate profile!" }
       }
+    }
+  },
+  registeredUsers: async (args, req) => {
+    if (!req.isAuth) {
+      throw new Error('Unauthenticated!');
+    }
+    const where = args.filter
+      ? {
+        $or: [
+          { firstName: { $regex: args.filter, $options: "i" } },
+          { lastName: { $regex: args.filter, $options: "i" } }
+        ],
+      }
+      : {};
+    let findObj = {};
+    if (args.first) {
+      findObj = { limit: args.first }
+    }
+    if (args.page && args.first) {
+
+      findObj.skip = (args.page - 1) * args.first;
+    }
+    const users = await User.find(where, {}, findObj);
+    if (users.length <= 0) {
+      throw new Error('No record found');
+    }
+    else {
+      return users.map(user => {
+        return transformUser(user);
+      });
     }
   }
 };

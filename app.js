@@ -22,7 +22,8 @@ app.use(
   })
 );
 var mongoDB = 'mongodb://127.0.0.1:27017/GraphQLAuth';
-mongoose.connect(mongoDB, {useNewUrlParser: true, useUnifiedTopology: true});
+mongoose.connect(mongoDB, { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.set('debug', true);
 app.listen(3002);
 console.log("Server listening on: ", 3002);
 // mongoose

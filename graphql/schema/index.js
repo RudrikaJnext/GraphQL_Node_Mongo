@@ -9,6 +9,8 @@ type User {
   firstName: String
   lastName: String
   active: Boolean
+  createdDate: String,
+  role: String
 }
 
 type AuthData {
@@ -31,6 +33,8 @@ type Profile {
   lastName: String
   active: Boolean
   message: String
+  createdDate: String
+  role: String
 }
 
 type DeactiveUser {
@@ -43,6 +47,7 @@ input UserInput {
   lastName: String
   active: Boolean
   createdDate: String
+  role: String
 }
 
 input PasswordInput {
@@ -57,9 +62,13 @@ input ProfileInput{
   active: Boolean
 }
 
+input NameFilter {
+  OR: [NameFilter!]
+}
 type RootQuery {
     login(email: String!, password: String!): AuthData!
     getMyProfile: User
+    registeredUsers(filter: String, page: Int, first:Int): [User!]!
 }
 
 type RootMutation {

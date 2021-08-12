@@ -23,10 +23,15 @@ const userSchema = new Schema({
     type: Boolean,
     required: false
   },
-  createdDate:{
+  createdDate: {
     type: Date,
     required: false
-}
+  },
+  role: {
+    type: String,
+    enum: ['ADMIN', 'MEMBER'],
+    default: 'MEMBER'
+  }
 }, { versionKey: false });
 
 module.exports = mongoose.model('User', userSchema);
